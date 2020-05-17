@@ -74,7 +74,7 @@ function ResultsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#DCA',
+    backgroundColor: 'white',
     width: '100%',
     flex: 1,
     alignItems: 'center',

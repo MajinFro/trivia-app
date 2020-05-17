@@ -43,6 +43,11 @@ const styles = StyleSheet.create<ITextButtonStyle>({
     borderWidth: 2,
     borderColor: 'black',
     backgroundColor: 'blue',
+    shadowColor: 'rgba(0,0,0,.5)',
+    shadowOffset: {height: 2, width: 2},
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    elevation: 3,
   },
   text: {
     color: 'white',

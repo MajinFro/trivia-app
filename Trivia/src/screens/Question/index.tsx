@@ -68,7 +68,7 @@ function QuestionScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#DCA',
+    backgroundColor: 'white',
     width: '100%',
     flex: 1,
     alignItems: 'center',
@@ -93,12 +93,18 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   card: {
-    borderWidth: 3,
-    borderRadius: 3,
-    borderColor: '#000',
+    borderWidth: 2,
+    borderRadius: 2,
+    borderColor: 'black',
+    backgroundColor: 'white',
     height: 'auto',
     padding: 10,
     marginBottom: 10,
+    shadowColor: 'rgba(0,0,0,.5)',
+    shadowOffset: {height: 2, width: 2},
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    elevation: 10,
   },
   questionText: {
     textAlign: 'center',
