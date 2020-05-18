@@ -1,5 +1,8 @@
 # README #
 
+Inline-style: 
+![alt text](https://github.com/MajinFro/trivia-app/images/untitled.gif "App gif")
+
 ## App Structure ##
 
 ### Index.js ###
