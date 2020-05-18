@@ -3,14 +3,14 @@ import {StyleSheet, View, Text} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {CustomButton, LoadingOverlay} from '../../components';
 import {AppState} from '../../store';
-import {navigate} from '../../services/';
+import {navigate} from '../../services';
 import {
   requestQuestions,
   showLoading,
   markUnfinished,
 } from '../../store/trivia/actions';
 
-const HomeScreen = () => {
+const ErrorScreen = () => {
   const dispatch = useDispatch();
   const token = useSelector((state: AppState) => state.questions.questionToken);
   const errorMessage = useSelector(
@@ -23,7 +23,7 @@ const HomeScreen = () => {
     (state: AppState) => state.questions.isFinished,
   );
 
-  function beginClicked(): void {
+  function tryAgainClicked(): void {
     dispatch(showLoading('Hello'));
   }
 
@@ -38,22 +38,15 @@ const HomeScreen = () => {
     }
   }
 
-  if (errorMessage) {
-    navigate('Error', {});
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.container}>
         <View style={styles.body}>
-          <Text style={styles.header}>Welcome To the Trivia Challenge!</Text>
-          <Text style={styles.text}>
-            You will be presented with 10 True or False questions.
-          </Text>
-          <Text style={styles.text}>Can you score 100%?</Text>
+          <Text style={styles.header}>There was an error.</Text>
+          <Text style={styles.text}>{errorMessage}</Text>
           <CustomButton
-            title="Begin"
-            onPress={beginClicked}
+            title="Try Again!"
+            onPress={tryAgainClicked}
             disabled={loading}
             type="outline"
           />
@@ -89,7 +82,8 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 25,
     textAlign: 'center',
+    color: 'red',
   },
 });
 
-export default HomeScreen;
+export default ErrorScreen;

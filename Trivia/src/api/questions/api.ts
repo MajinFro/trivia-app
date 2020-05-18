@@ -3,7 +3,7 @@ import {OTDB_URL} from '../constants';
 import {IQuestionRequest, IQuestionResponse} from './models';
 import queryString from 'query-string';
 
-export const getTrivia = async (
+export const getQuestions = async (
   request: IQuestionRequest,
 ): Promise<IQuestionResponse> => {
   let url: string = `${OTDB_URL}?${queryString.stringify(request)}`;

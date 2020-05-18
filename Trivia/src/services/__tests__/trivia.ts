@@ -1,13 +1,15 @@
-import {getNextSetOfQuestions} from '../trivia';
+import {getNextSetOfQuestions, ITriviaResponse} from '../trivia';
 import {IQuestionResponse, IQuestion, ITokenResponse} from '../../api';
 
 jest.mock('../../api', () => {
   const actualAPI = jest.requireActual('../../api');
   const getSessionTokenOriginalImplementation = actualAPI.getSessionToken;
-  const getTriviaOriginalImplementation = actualAPI.getTrivia;
+  const getQuestionsOriginalImplementation = actualAPI.getQuestions;
   return {
     ...actualAPI,
-    getTrivia: jest.fn().mockImplementation(getTriviaOriginalImplementation),
+    getQuestions: jest
+      .fn()
+      .mockImplementation(getQuestionsOriginalImplementation),
     getSessionToken: jest
       .fn()
       .mockImplementation(getSessionTokenOriginalImplementation),
@@ -16,15 +18,11 @@ jest.mock('../../api', () => {
 
 import * as api from '../../api';
 
-let tokenHandler: jest.Mock<any, any>;
-let errorHandler: jest.Mock<any, any>;
-let getTrivia: jest.SpyInstance;
+let getQuestions: jest.SpyInstance;
 let getSessionToken: jest.SpyInstance;
 
 beforeEach(() => {
-  tokenHandler = jest.fn();
-  errorHandler = jest.fn();
-  getTrivia = jest.spyOn(api, 'getTrivia');
+  getQuestions = jest.spyOn(api, 'getQuestions');
   getSessionToken = jest.spyOn(api, 'getSessionToken');
 });
 
@@ -32,7 +30,7 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const mockQuestions = [
+const mockQuestions: IQuestion[] = [
   {
     category: 'Entertainment',
     type: 'boolean',
@@ -49,38 +47,34 @@ const mockQuestions = [
     correct_answer: 'False',
     incorrect_answers: ['True'],
   },
-] as IQuestion[];
+];
 
-const tokenResponse = {
+const tokenResponse: ITokenResponse = {
   response_code: 0,
   token: 'A_NEW_SESSION_TOKEN',
-} as ITokenResponse;
+};
 
 describe('successful response from getNextSetOfQuestions', () => {
-  const mockData = {
+  const mockData: IQuestionResponse = {
     response_code: 0,
     results: mockQuestions,
-  } as IQuestionResponse;
+  };
 
   describe('when passed a token', () => {
     it('should return data from response', async () => {
-      getTrivia.mockReturnValueOnce(Promise.resolve(mockData));
+      getQuestions.mockReturnValueOnce(Promise.resolve(mockData));
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
 
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
 
-      expect(trivia).toEqual(mockData.results);
+      let expectedResponse: ITriviaResponse = {
+        questions: mockQuestions,
+        token: 'A_SESSION_TOKEN',
+      };
+      expect(trivia).toEqual(expectedResponse);
 
-      expect(tokenHandler).toHaveBeenCalledTimes(0);
-      expect(errorHandler).toHaveBeenCalledTimes(0);
-
-      expect(getTrivia).toHaveBeenCalledTimes(1);
-      expect(getTrivia).toHaveBeenCalledWith({
+      expect(getQuestions).toHaveBeenCalledTimes(1);
+      expect(getQuestions).toHaveBeenCalledWith({
         amount: 10,
         type: 'boolean',
         token: 'A_SESSION_TOKEN',
@@ -92,24 +86,20 @@ describe('successful response from getNextSetOfQuestions', () => {
 
   describe('when not passed a token', () => {
     it('should request a token and return data from the response', async () => {
-      getTrivia.mockReturnValueOnce(Promise.resolve(mockData));
+      getQuestions.mockReturnValueOnce(Promise.resolve(mockData));
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
 
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-      );
+      const trivia = await getNextSetOfQuestions(10);
 
-      expect(trivia).toEqual(mockData.results);
+      let expectedResponse: ITriviaResponse = {
+        questions: mockQuestions,
+        token: 'A_NEW_SESSION_TOKEN',
+      };
 
-      expect(tokenHandler).toHaveBeenCalledTimes(1);
-      expect(tokenHandler).toHaveBeenCalledWith('A_NEW_SESSION_TOKEN');
+      expect(trivia).toEqual(expectedResponse);
 
-      expect(errorHandler).toHaveBeenCalledTimes(0);
-
-      expect(getTrivia).toHaveBeenCalledTimes(1);
-      expect(getTrivia).toHaveBeenCalledWith({
+      expect(getQuestions).toHaveBeenCalledTimes(1);
+      expect(getQuestions).toHaveBeenCalledWith({
         amount: 10,
         type: 'boolean',
         token: 'A_NEW_SESSION_TOKEN',
@@ -136,32 +126,27 @@ describe('error response from trivia api', () => {
         results: mockQuestions,
       } as IQuestionResponse;
 
-      getTrivia
+      getQuestions
         .mockReturnValueOnce(Promise.resolve(mockDataTokenError))
         .mockReturnValueOnce(Promise.resolve(mockDataSuccessful));
 
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
 
-      expect(trivia).toEqual(mockDataSuccessful.results);
+      let expectedResponse: ITriviaResponse = {
+        token: 'A_NEW_SESSION_TOKEN',
+        questions: mockQuestions,
+      };
 
-      expect(tokenHandler).toHaveBeenCalledTimes(1);
-      expect(tokenHandler).toHaveBeenCalledWith('A_NEW_SESSION_TOKEN');
+      expect(trivia).toEqual(expectedResponse);
 
-      expect(errorHandler).toHaveBeenCalledTimes(0);
-
-      expect(getTrivia).toHaveBeenCalledTimes(2);
-      expect(getTrivia).toHaveBeenCalledWith({
+      expect(getQuestions).toHaveBeenCalledTimes(2);
+      expect(getQuestions).toHaveBeenCalledWith({
         amount: 10,
         type: 'boolean',
         token: 'A_SESSION_TOKEN',
       });
-      expect(getTrivia).toHaveBeenCalledWith({
+      expect(getQuestions).toHaveBeenCalledWith({
         amount: 10,
         type: 'boolean',
         token: 'A_NEW_SESSION_TOKEN',
@@ -179,40 +164,24 @@ describe('error response from trivia api', () => {
         token: 'A_NEW_SESSION_TOKEN_2',
       } as ITokenResponse;
       beforeEach(() => {
-        getTrivia.mockReturnValue(Promise.resolve(mockDataTokenError));
+        getQuestions.mockReturnValue(Promise.resolve(mockDataTokenError));
 
         getSessionToken
           .mockReturnValueOnce(Promise.resolve(tokenResponse))
           .mockReturnValueOnce(Promise.resolve(tokenResponse2));
       });
 
-      it('should return empty array and call error handler', async () => {
-        const trivia = await getNextSetOfQuestions(
-          10,
-          tokenHandler,
-          errorHandler,
-          'A_SESSION_TOKEN',
-        );
-
-        expect(trivia).toEqual([]);
-        expect(errorHandler).toHaveBeenCalledTimes(1);
-        expect(errorHandler).toHaveBeenCalledWith('Token not found.');
+      it('should return a trivia response with an empty array and error message', async () => {
+        const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
+        let expectedResponse: ITriviaResponse = {
+          errorMessage: 'Token not found.',
+          questions: [],
+        };
+        expect(trivia).toEqual(expectedResponse);
       });
 
       it('should attempt to get token twice', async () => {
-        await getNextSetOfQuestions(
-          10,
-          tokenHandler,
-          errorHandler,
-          'A_SESSION_TOKEN',
-        );
-
-        expect(tokenHandler).toHaveBeenCalledTimes(2);
-        expect(tokenHandler).toHaveBeenNthCalledWith(1, 'A_NEW_SESSION_TOKEN');
-        expect(tokenHandler).toHaveBeenNthCalledWith(
-          2,
-          'A_NEW_SESSION_TOKEN_2',
-        );
+        await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
         expect(getSessionToken).toHaveBeenCalledTimes(2);
         expect(getSessionToken).toHaveBeenCalledWith({
           command: 'request',
@@ -220,25 +189,20 @@ describe('error response from trivia api', () => {
       });
 
       it('should attempt to get data 3 times', async () => {
-        await getNextSetOfQuestions(
-          10,
-          tokenHandler,
-          errorHandler,
-          'A_SESSION_TOKEN',
-        );
+        await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
 
-        expect(getTrivia).toHaveBeenCalledTimes(3);
-        expect(getTrivia).toHaveBeenCalledWith({
+        expect(getQuestions).toHaveBeenCalledTimes(3);
+        expect(getQuestions).toHaveBeenCalledWith({
           amount: 10,
           type: 'boolean',
           token: 'A_SESSION_TOKEN',
         });
-        expect(getTrivia).toHaveBeenCalledWith({
+        expect(getQuestions).toHaveBeenCalledWith({
           amount: 10,
           type: 'boolean',
           token: 'A_NEW_SESSION_TOKEN',
         });
-        expect(getTrivia).toHaveBeenCalledWith({
+        expect(getQuestions).toHaveBeenCalledWith({
           amount: 10,
           type: 'boolean',
           token: 'A_NEW_SESSION_TOKEN_2',
@@ -248,116 +212,101 @@ describe('error response from trivia api', () => {
   });
 
   describe('has 3 retries that all result in No Results Found', () => {
-    it('should return empty array and call error handler', async () => {
+    it('should return a trivia response with an empty array and error message', async () => {
       const mockDataNoResults = {
         response_code: 1,
         results: [],
       } as IQuestionResponse;
 
-      getTrivia.mockReturnValue(Promise.resolve(mockDataNoResults));
+      getQuestions.mockReturnValue(Promise.resolve(mockDataNoResults));
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
+      let expectedResponse: ITriviaResponse = {
+        errorMessage: 'No results found.',
+        questions: [],
+      };
 
-      expect(trivia).toEqual([]);
-      expect(errorHandler).toHaveBeenCalledTimes(1);
-      expect(errorHandler).toHaveBeenCalledWith('No results found.');
+      expect(trivia).toEqual(expectedResponse);
     });
   });
 
   describe('has 3 retries that all result in Invalid Parameter', () => {
-    it('should return empty array and call error handler', async () => {
+    it('should return a trivia response with an empty array and error message', async () => {
       const mockDataInvalidParameter = {
         response_code: 2,
         results: [],
       } as IQuestionResponse;
 
-      getTrivia.mockReturnValue(Promise.resolve(mockDataInvalidParameter));
+      getQuestions.mockReturnValue(Promise.resolve(mockDataInvalidParameter));
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
+      let expectedResponse: ITriviaResponse = {
+        errorMessage: 'Invalid parameter.',
+        questions: [],
+      };
 
-      expect(trivia).toEqual([]);
-      expect(errorHandler).toHaveBeenCalledTimes(1);
-      expect(errorHandler).toHaveBeenCalledWith('Invalid parameter.');
+      expect(trivia).toEqual(expectedResponse);
     });
   });
 
   describe('has 3 retries that all result in Out Of Questions', () => {
-    it('should return empty array and call error handler', async () => {
+    it('should return a trivia response with an empty array and error message', async () => {
       const mockDataTokenOutOfQuestions = {
         response_code: 4,
         results: [],
       } as IQuestionResponse;
 
-      getTrivia.mockReturnValue(Promise.resolve(mockDataTokenOutOfQuestions));
+      getQuestions.mockReturnValue(
+        Promise.resolve(mockDataTokenOutOfQuestions),
+      );
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
+      let expectedResponse: ITriviaResponse = {
+        errorMessage: 'Out of questions for the token.',
+        questions: [],
+      };
 
-      expect(trivia).toEqual([]);
-      expect(errorHandler).toHaveBeenCalledTimes(1);
-      expect(errorHandler).toHaveBeenCalledWith(
-        'Out of questions for the token.',
-      );
+      expect(trivia).toEqual(expectedResponse);
     });
   });
 
   describe('has 3 retries that all result in HTTP Errors', () => {
-    it('should return empty array and call error handler', async () => {
+    it('should return a trivia response with an empty array and error message', async () => {
       const mockDataTokenHTTPError = {
         response_code: -1,
         results: [],
       } as IQuestionResponse;
 
-      getTrivia.mockReturnValue(Promise.resolve(mockDataTokenHTTPError));
+      getQuestions.mockReturnValue(Promise.resolve(mockDataTokenHTTPError));
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
+      let expectedResponse: ITriviaResponse = {
+        errorMessage: 'An error has occurred.',
+        questions: [],
+      };
 
-      expect(trivia).toEqual([]);
-      expect(errorHandler).toHaveBeenCalledTimes(1);
-      expect(errorHandler).toHaveBeenCalledWith('An error has occurred.');
+      expect(trivia).toEqual(expectedResponse);
     });
   });
 
   describe('has 3 retries that all result in Unknown Response Code', () => {
-    it('should return empty array and call error handler', async () => {
+    it('should return a trivia response with an empty array and error message', async () => {
       const mockDataTokenUnknownResponseCode = {
         response_code: 5,
         results: [],
       } as IQuestionResponse;
 
-      getTrivia.mockReturnValue(
+      getQuestions.mockReturnValue(
         Promise.resolve(mockDataTokenUnknownResponseCode),
       );
       getSessionToken.mockReturnValue(Promise.resolve(tokenResponse));
-      const trivia = await getNextSetOfQuestions(
-        10,
-        tokenHandler,
-        errorHandler,
-        'A_SESSION_TOKEN',
-      );
+      const trivia = await getNextSetOfQuestions(10, 'A_SESSION_TOKEN');
+      let expectedResponse: ITriviaResponse = {
+        errorMessage: 'An error has occurred.',
+        questions: [],
+      };
 
-      expect(trivia).toEqual([]);
-      expect(errorHandler).toHaveBeenCalledTimes(1);
-      expect(errorHandler).toHaveBeenCalledWith('An error has occurred.');
+      expect(trivia).toEqual(expectedResponse);
     });
   });
 });

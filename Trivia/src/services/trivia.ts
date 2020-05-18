@@ -1,6 +1,6 @@
 import {
   getSessionToken,
-  getTrivia,
+  getQuestions,
   ITokenRequest,
   IQuestionRequest,
   IQuestionResponse,
@@ -13,7 +13,7 @@ async function getToken(): Promise<string | undefined> {
   return response.token;
 }
 
-async function getQuestions(
+async function getQuestionsFromAPI(
   amount: number,
   token: string | undefined,
 ): Promise<IQuestionResponse> {
@@ -23,7 +23,7 @@ async function getQuestions(
     token: token,
   };
 
-  return await getTrivia(request);
+  return await getQuestions(request);
 }
 
 function getErrorMessage(responseCode: number): string {
@@ -60,7 +60,10 @@ export const getNextSetOfQuestions = async (
       retVal.token = await getToken();
     }
 
-    let questions: IQuestionResponse = await getQuestions(amount, token);
+    let questions: IQuestionResponse = await getQuestionsFromAPI(
+      amount,
+      retVal.token,
+    );
     if (questions.response_code === 0) {
       retVal.questions = questions.results;
       break;
@@ -71,6 +74,7 @@ export const getNextSetOfQuestions = async (
       retries++;
     }
     if (retries === 3 && questions.response_code !== 0) {
+      retVal.token = undefined;
       retVal.errorMessage = getErrorMessage(questions.response_code);
     }
   }

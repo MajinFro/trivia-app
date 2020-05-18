@@ -16,7 +16,7 @@ export enum TRIVIA_ACTION_TYPES {
   UPDATE_TOKEN = 'TRIVIA/UPDATE_TOKEN',
   ERROR = 'TRIVIA/ERROR',
   SHOW_LOADING = 'TRIVIA/SHOW_LOADING',
-  FINISHED_LOADING = 'TRIVIA/FINISHED_LOADING',
+  MARK_UNFINISHED = 'TRIVIA/MARK_UNFINISHED',
 }
 
 export const questionsReceived = (
@@ -52,6 +52,6 @@ export const showLoading = (str: string): ShowLoadingAction => ({
 });
 
 export const markUnfinished = (str: string): MarkUnfinishedAction => ({
-  type: TRIVIA_ACTION_TYPES.FINISHED_LOADING,
+  type: TRIVIA_ACTION_TYPES.MARK_UNFINISHED,
   str: str,
 });

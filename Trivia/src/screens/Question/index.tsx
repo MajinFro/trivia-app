@@ -1,12 +1,13 @@
 import React from 'react';
 import {StyleSheet, View, Text} from 'react-native';
-import {TextButton} from '../../components';
+import {Card} from 'react-native-elements';
 import {useSelector, useDispatch} from 'react-redux';
-import {AppState} from 'src/store';
-import {userAnswer} from '../../store/trivia/actions';
-import * as RootNavigator from '../../navigation/rootNavigation';
+import {CustomButton} from '../../components';
+import {AppState} from '../../store';
+import {userAnswer} from '../../store/trivia/';
+import {navigate} from '../../services';
 
-function QuestionScreen() {
+const QuestionScreen = () => {
   const currentQuestionIndex = useSelector(
     (state: AppState) => state.questions.currentQuestion,
   );
@@ -32,7 +33,7 @@ function QuestionScreen() {
   }
 
   if (gameOver) {
-    RootNavigator.navigate('Results', {});
+    navigate('Results', {});
   }
 
   return (
@@ -40,35 +41,39 @@ function QuestionScreen() {
       <View style={styles.body}>
         <Text style={styles.header}>{question.category}</Text>
         <View style={styles.question}>
-          <View style={styles.card}>
+          <Card containerStyle={styles.card}>
             <Text style={styles.questionText}>{question.question}</Text>
-          </View>
+          </Card>
           <Text style={styles.text}>
             {currentQuestionIndex + 1} of {numOfQuestions}
           </Text>
         </View>
         <View style={styles.buttonContainer}>
-          <TextButton
+          <CustomButton
             title="False"
             onPress={falseClicked}
-            buttonStyle={styles.textButtonFalse}
             disabled={false}
+            type="outline"
+            buttonStyle={styles.falseButton}
+            textStyle={styles.falseAnswer}
           />
-          <TextButton
+          <CustomButton
             title="True"
             onPress={trueClicked}
-            buttonStyle={styles.textButtonTrue}
             disabled={false}
+            type="outline"
+            buttonStyle={styles.trueButton}
+            textStyle={styles.trueAnswer}
           />
         </View>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: '#eee',
     width: '100%',
     flex: 1,
     alignItems: 'center',
@@ -93,18 +98,8 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   card: {
-    borderWidth: 2,
-    borderRadius: 2,
-    borderColor: 'black',
     backgroundColor: 'white',
-    height: 'auto',
-    padding: 10,
-    marginBottom: 10,
-    shadowColor: 'rgba(0,0,0,.5)',
-    shadowOffset: {height: 2, width: 2},
-    shadowOpacity: 1,
-    shadowRadius: 1,
-    elevation: 10,
+    marginBottom: 20,
   },
   questionText: {
     textAlign: 'center',
@@ -123,11 +118,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     width: '100%',
   },
-  textButtonFalse: {
-    backgroundColor: 'red',
+  falseAnswer: {
+    color: 'red',
   },
-  textButtonTrue: {
-    backgroundColor: 'green',
+  falseButton: {
+    borderColor: 'red',
+  },
+  trueAnswer: {
+    color: 'green',
+  },
+  trueButton: {
+    borderColor: 'green',
   },
 });
 

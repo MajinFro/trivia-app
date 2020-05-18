@@ -1,4 +1,4 @@
-import {getTrivia} from '../api';
+import {getQuestions} from '../api';
 import {OTDB_URL} from '../../constants';
 import axios from 'axios';
 import {IQuestionResponse} from '../models';
@@ -43,7 +43,7 @@ describe('successful response', () => {
       status: 200,
     });
 
-    const trivia = await getTrivia({
+    const trivia = await getQuestions({
       amount: 10,
       type: 'boolean',
       token: 'A_TOKEN',
@@ -63,7 +63,7 @@ describe('http error response', () => {
       status: 404,
     });
 
-    const trivia = await getTrivia({
+    const trivia = await getQuestions({
       amount: 10,
       type: 'boolean',
     });

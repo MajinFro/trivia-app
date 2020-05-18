@@ -34,6 +34,11 @@ const Questions = (
   const newState: QuestionsState = clone<QuestionsState>(state);
 
   switch (action.type) {
+    case TRIVIA_ACTION_TYPES.SHOW_LOADING:
+      newState.isLoading = true;
+      newState.isFinished = false;
+      newState.errorMessage = undefined;
+      return newState;
     case TRIVIA_ACTION_TYPES.QUESTIONS_RECEIVED:
       newState.isLoading = false;
       newState.gameOver = false;
@@ -43,15 +48,8 @@ const Questions = (
         newState,
         (action as QuestionsReceivedAction).triviaResponse,
       );
-    case TRIVIA_ACTION_TYPES.USER_ANSWER:
-      let index: number = newState.currentQuestion;
-      if (index < newState.questions.length - 1) {
-        newState.currentQuestion++;
-      } else {
-        newState.gameOver = true;
-      }
-      // eslint-disable-next-line prettier/prettier
-      newState.questions[index].userAnswer = (action as UserAnswerAction).answer;
+    case TRIVIA_ACTION_TYPES.MARK_UNFINISHED:
+      newState.isFinished = false;
       return newState;
     case TRIVIA_ACTION_TYPES.UPDATE_TOKEN:
       newState.questionToken = (action as UpdateTokenAction).token;
@@ -59,12 +57,15 @@ const Questions = (
     case TRIVIA_ACTION_TYPES.ERROR:
       newState.errorMessage = (action as ErrorAction).error;
       return newState;
-    case TRIVIA_ACTION_TYPES.SHOW_LOADING:
-      newState.isLoading = true;
-      newState.isFinished = false;
-      return newState;
-    case TRIVIA_ACTION_TYPES.FINISHED_LOADING:
-      newState.isFinished = false;
+    case TRIVIA_ACTION_TYPES.USER_ANSWER:
+      let index: number = newState.currentQuestion;
+      // eslint-disable-next-line prettier/prettier
+      newState.questions[index].userAnswer = (action as UserAnswerAction).answer;
+      if (index < newState.questions.length - 1) {
+        newState.currentQuestion++;
+      } else {
+        newState.gameOver = true;
+      }
       return newState;
     default:
       return state;

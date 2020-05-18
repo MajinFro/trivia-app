@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Question} from 'src/store';
-import {QuestionResult} from './questionResult';
+import {QuestionResult} from './QuestionResult';
 
 export const QuestionResultList = (props: IQuestionResultListProps) => {
   const questionList = props.questions.map((q, i) => {
@@ -10,9 +10,9 @@ export const QuestionResultList = (props: IQuestionResultListProps) => {
         key={i}
         question={q.question}
         userAnswer={q.userAnswer as boolean}
-        textStyle={
-          q.answer === q.userAnswer ? styles.correctText : styles.wrongText
-        }
+        questionAnswer={q.answer as boolean}
+        icon={q.answer === q.userAnswer ? 'check' : 'times'}
+        iconColor={q.answer === q.userAnswer ? 'green' : 'red'}
       />
     );
   });
@@ -25,12 +25,19 @@ export interface IQuestionResultListProps {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: '#eee',
   },
   correctText: {
     color: 'green',
   },
   wrongText: {
     color: 'red',
+  },
+  text: {
+    color: 'black',
+    fontSize: 15,
+    textAlign: 'left',
+    marginLeft: 5,
+    marginRight: 5,
   },
 });
