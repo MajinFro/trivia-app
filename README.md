@@ -1,6 +1,6 @@
 # README #
 
-![alt text](https://github.com/MajinFro/trivia-app/images/untitled.gif "App gif")
+![alt text](https://github.com/MajinFro/trivia-app/blob/master/images/untitled.gif "App gif")
 
 ## App Structure ##
 
